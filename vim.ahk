@@ -10,8 +10,12 @@ GroupAdd VimGroup, Write: ;Thuderbird, English
 GroupAdd VimGroup, ahk_class PP12FrameClass ; PowerPoint
 GroupAdd VimGroup, ahk_class OpusApp ; Word
 GroupAdd VimGroup, ahk_class ENMainFrame ; Evernote
+GroupAdd VimGroup, ahk_class TIBEMainForm ; IbExpert
+GroupAdd VimGroup, ahk_class TEditWindow ; Delphi
 GroupAdd VimGroup, ahk_exe Code.exe ; Visual Studio Code
 GroupAdd VimGroup, ahk_exe onenote.exe ; OneNote Desktop
+GroupAdd VimGroup, ahk_exe delphi32.exe; Delphi
+GroupAdd VimGroup, ahk_class Notepad++ ; Notepad++
 GroupAdd VimGroup, OneNote ; OneNote in Windows 10
 
 GroupAdd DoubleHome, ahk_exe Code.exe ; Visual Studio Code
@@ -20,7 +24,7 @@ GroupAdd OneNoteGroup, ahk_exe onenote.exe ; OneNote Desktop
 GroupAdd OneNoteGroup, , OneNote ; OneNote in Windows 10
 
 ; Global settings
-VimVerbose=0 ; Verbose level (0: no pop up, 1: minimum tool tips of status, 2: more info in tool tips, 3: Debug mode with a message box, which doesn't disappear automatically) 
+VimVerbose=2 ; Verbose level (0: no pop up, 1: minimum tool tips of status, 2: more info in tool tips, 3: Debug mode with a message box, which doesn't disappear automatically) 
 VimRestoreIME=1 ; If IME status is restored or not at entering insert mode. 1 for restoring, 0 for not to restore (always IME off at enterng insert mode).
 
 VimMode=Insert
@@ -123,7 +127,7 @@ VIM_IME_SET(SetSts=0, WinTitle="A")    {
 Status(Title){
     WinGetPos,,,W,H,A
     Tooltip,%Title%,W*3/4,H*3/4
-    SetTimer, RemoveStatus, 1000
+    SetTimer, RemoveStatus, 10000
 }
 
 RemoveStatus:
@@ -792,6 +796,7 @@ c::
 ; Search {{{
 #If WInActive("ahk_group VimGroup") and (VimMode="Vim_Normal")
 /::Send,^f
+SC073::Send,^f
 *::
   bak:=ClipboardAll
   Clipboard=
