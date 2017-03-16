@@ -1,15 +1,17 @@
 ﻿; Auto-execute section {{{
 
 ; Application groups
-GroupAdd VimGroup, ahk_class Notepad
-GroupAdd VimGroup, ahk_class WordPadClass
-GroupAdd VimGroup, ahk_class TTeraPadMainForm
-GroupAdd VimGroup, ahk_class CabinetWClass ; Exploler
+
+; Enable vim mode for following applications
+GroupAdd VimGroup, ahk_exe notepad.exe ; NotePad
+GroupAdd VimGroup, ahk_exe wordpad.exe ; WordPad
+GroupAdd VimGroup, ahk_exe TeraPad.exe ; TeraPad
+GroupAdd VimGroup, ahk_exe exploler.exe
 GroupAdd VimGroup, 作成 ;Thunderbird, 日本語
 GroupAdd VimGroup, Write: ;Thuderbird, English
-GroupAdd VimGroup, ahk_class PP12FrameClass ; PowerPoint
-GroupAdd VimGroup, ahk_class OpusApp ; Word
-GroupAdd VimGroup, ahk_class ENMainFrame ; Evernote
+GroupAdd VimGroup, ahk_exe POWERPNT.exe ; PowerPoint
+GroupAdd VimGroup, ahk_exe WINWORD.exe ; Word
+GroupAdd VimGroup, ahk_exe Evernote.exe ; Evernote
 GroupAdd VimGroup, ahk_class TIBEMainForm ; IbExpert
 GroupAdd VimGroup, ahk_class TEditWindow ; Delphi
 GroupAdd VimGroup, ahk_exe Code.exe ; Visual Studio Code
@@ -18,10 +20,17 @@ GroupAdd VimGroup, ahk_exe delphi32.exe; Delphi
 GroupAdd VimGroup, ahk_class Notepad++ ; Notepad++
 GroupAdd VimGroup, OneNote ; OneNote in Windows 10
 
-GroupAdd DoubleHome, ahk_exe Code.exe ; Visual Studio Code
+; Following application select the line break at Shift + End.
+GroupAdd LBSelect, ahk_exe POWERPNT.exe ; PowerPoint
+GroupAdd LBSelect, ahk_exe WINWORD.exe ; Word
+GroupAdd LBSelect, ahk_exe wordpad.exe ; WordPad
 
+; Seems Windows 10's OneNote has normal behavior as others.
 GroupAdd OneNoteGroup, ahk_exe onenote.exe ; OneNote Desktop
-GroupAdd OneNoteGroup, , OneNote ; OneNote in Windows 10
+;GroupAdd OneNoteGroup, , OneNote ; OneNote in Windows 10
+
+; Need Home twice
+GroupAdd DoubleHome, ahk_exe Code.exe ; Visual Studio Code
 
 ; Global settings
 VimVerbose=2 ; Verbose level (0: no pop up, 1: minimum tool tips of status, 2: more info in tool tips, 3: Debug mode with a message box, which doesn't disappear automatically) 
@@ -486,7 +495,6 @@ g::VimSetMode("",1)
 
 VimMove(key="", shift=0){
   global
-  ;msgbox, %shift%
   if (InStr(VimMode,"Visual") or InStr(VimMode,"ydc") or shift=1){
     Send,{Shift Down}
   }
@@ -520,13 +528,14 @@ VimMove(key="", shift=0){
     VimLineCopy=1
     Send,{Shift Up}{Home}{Down}{Shift Down}{Up}
   }
-  if (InStr(VimMode,"Vim_ydc")) and (key="k" or key="^u" or key="^b" or key="g"){
+  if (InStr(VimMode,"Vim_ydc")) and (key="j" or key="^d" or key="^f" or key="+g"){
     VimLineCopy=1
     Send,{Shift Up}{Home}{Shift Down}{Down}
   }
 
   ; 1 character
   if (key="j"){
+    ; Only for OneNote of less than windows 10?
     if WinActive("ahk_group OneNoteGroup"){
       Send ^{Down}
     } else {
@@ -594,11 +603,11 @@ l::VimMoveLoop("l")
 ^k::VimMoveLoop("k")
 ^l::VimMoveLoop("l")
 ; Home/End
-0::VimMoveLoop("0")
-$::VimMoveLoop("$")
-^a::VimMoveLoop("0") ; Emacs like
-^e::VimMoveLoop("$") ; Emacs like
-^::VimMoveLoop("^")
+0::VimMove("0")
+$::VimMove("$")
+^a::VimMove("0") ; Emacs like
+^e::VimMove("$") ; Emacs like
+^::VimMove("^")
 ; Words
 w::VimMoveLoop("w")
 +w::VimMoveLoop("w") ; +w/e/+e are same as w
@@ -612,10 +621,10 @@ b::VimMoveLoop("b")
 ^b::VimMoveLoop("^b")
 ^f::VimMoveLoop("^f")
 ; G
-+g::VimMoveLoop("+g")
++g::VimMove("+g")
 ; gg
 #If WInActive("ahk_group VimGroup") and (InStr(VimMode,"Vim_")) and (Vim_g)
-g::VimMoveLoop("g")
+g::VimMove("g")
 ; }}} Move
 
 ; Copy/Cut/Paste (ydcxp){{{
@@ -631,15 +640,30 @@ c::VimSetMode("Vim_ydc_c",0,-1,0)
     Send,{Home}
   }
   Send,{Home}+{End}
-  VimMoveLoop("l")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("l")
+  }else{
+    VimMove("")
+  }
+  Send, {Left}{Home}
   Return
 +d::
   VimSetMode("Vim_ydc_d",0,0,0)
-  VimMoveLoop("$")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("$")
+  }else{
+    Send,{Shift Down}{End}{Left}
+    VimMove("")
+  }
   Return
 +c::
   VimSetMode("Vim_ydc_c",0,0,0)
-  VimMoveLoop("$")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("$")
+  }else{
+    Send,{Shift Down}{End}{Left}
+    VimMove("")
+  }
   Return
 #If WInActive("ahk_group VimGroup") and (VimMode="Vim_ydc_y")
 y::
@@ -648,7 +672,12 @@ y::
     Send,{Home}
   }
   Send,{Home}+{End}
-  VimMoveLoop("l")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("l")
+  }else{
+    VimMove("")
+  }
+  Send, {Left}{Home}
   Return
 #If WInActive("ahk_group VimGroup") and (VimMode="Vim_ydc_d")
 d::
@@ -657,7 +686,11 @@ d::
     Send,{Home}
   }
   Send,{Home}+{End}
-  VimMoveLoop("l")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("l")
+  }else{
+    VimMove("")
+  }
   Return
 #If WInActive("ahk_group VimGroup") and (VimMode="Vim_ydc_c")
 c::
@@ -666,7 +699,11 @@ c::
     Send,{Home}
   }
   Send,{Home}+{End}
-  VimMoveLoop("l")
+  if not WinActive("ahk_group LBSelect"){
+    VimMove("l")
+  }else{
+    VimMove("")
+  }
   Return
 
 #If WInActive("ahk_group VimGroup") and (VimMode="Vim_Normal")
